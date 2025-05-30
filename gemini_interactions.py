@@ -6,19 +6,20 @@ Handles communication with Google's Gemini LLM via the google-genai SDK.
 import google.genai as genai
 from config import GEMINI_API_KEY
 
+
 class GeminiClient:
     def __init__(self):
         self.client = genai.Client(api_key=GEMINI_API_KEY)
-    
+
     def get_gemini_response(self, prompt_text, context_data=None, tools_config=None):
         """
         Send a prompt to Gemini and get response.
-        
+
         Args:
             prompt_text (str): The instruction or question for Gemini
             context_data (str, optional): Additional context data
             tools_config (dict, optional): Configuration for tool usage
-            
+
         Returns:
             str: Gemini's response text
         """
@@ -27,23 +28,20 @@ class GeminiClient:
                 full_prompt = f"{prompt_text}\n\nContext:\n{context_data}"
             else:
                 full_prompt = prompt_text
-            
-            response = self.client.models.generate_content(
-                model='gemini-1.5-flash',
-                contents=full_prompt
-            )
+
+            response = self.client.models.generate_content(model="gemini-1.5-flash", contents=full_prompt)
             return response.text
         except Exception as e:
             print(f"Error getting Gemini response: {e}")
             return None
-    
+
     def prompt_for_search_strategy(self, user_query):
         """
         Ask Gemini to refine a user query into effective search terms or identify key information.
-        
+
         Args:
             user_query (str): The original user query
-            
+
         Returns:
             str: Gemini's suggested search strategy and potential file URL
         """
@@ -62,16 +60,16 @@ class GeminiClient:
         
         Provide your response in a structured format with clear sections for search terms, data sources, and specific URLs if known.
         """
-        
+
         return self.get_gemini_response(prompt)
-    
+
     def prompt_for_file_url(self, search_results_summary):
         """
         Ask Gemini to analyze search results and identify the most promising URL for a data file.
-        
+
         Args:
             search_results_summary (str): Summary of search results
-            
+
         Returns:
             str: Gemini's analysis and recommended file URL
         """
@@ -94,17 +92,17 @@ class GeminiClient:
         
         Return just the URL if you find a good match, or explain what additional information is needed.
         """
-        
+
         return self.get_gemini_response(prompt, search_results_summary)
-    
+
     def prompt_for_data_analysis_description(self, data_preview, user_query):
         """
         Show Gemini a preview of data and ask it to describe needed analysis.
-        
+
         Args:
             data_preview (str): Preview of the data (headers and first few rows)
             user_query (str): Original user query
-            
+
         Returns:
             str: Gemini's description of the analysis needed
         """
@@ -124,5 +122,5 @@ class GeminiClient:
         
         Be specific about the analytical approach and any data transformations needed.
         """
-        
+
         return self.get_gemini_response(prompt, data_preview)
