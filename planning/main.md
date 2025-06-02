@@ -26,7 +26,7 @@ Develop a Python-based AI agent that uses the Gemini Large Language Model to:
 The agent will operate through a sequence of interactions between Python control logic and the Gemini API (via the `google-genai` Python package), including invoking Gemini's code execution tool.
 
 Overall Flow:
-User Query -> Gemini (Understand & Plan Search/File ID) -> Python (File Download) -> Python (File Read/Parse) -> Python (Prepare Data for Gemini Tool) -> Gemini (Execute Analysis using its Code Execution Tool) -> Gemini (Synthesize Result from Tool Output) -> Output to User.
+User Query -> Gemini (Understand & Plan Search/File ID) -> Python (follow links to find appropriate file) -> Python (File Download) -> Python (File Read/Parse) -> Python (Prepare Data for Gemini Tool) -> Gemini (Execute Analysis using its Code Execution Tool) -> Gemini (Synthesize Result from Tool Output) -> Output to User.
 
 Key Python Modules/Functions to Implement:
 
@@ -62,9 +62,11 @@ Key Python Modules/Functions to Implement:
 
    * Specific prompting functions for:
 
-     * `prompt_for_search_strategy(user_query)`: Asks Gemini to refine a user query into effective search terms or identify key information to look for.
+     * `prompt_for_search_strategy(user_query)`: Asks Gemini to refine a user query into a prompt that is likely to provide a link to the right data table.
 
-     * `prompt_for_file_url(search_results_summary)`: Asks Gemini to analyze search results (summaries/links) and identify the most promising URL for a data file.
+     * `prompt_for_web_content(search_strategy)`: Asks Gemini to do search for data which should return URLs which are entry points to finding the data by traversing links.
+
+     * `prompt_for_file_url(web_content)`: Asks Gemini to analyze web content (the result of google searches) and identify the most promising URL to follow to find a data file or the URL for a data file.
 
      * `prompt_for_data_analysis_description(data_preview, user_query)`: Shows Gemini a preview of the data and the user query, asking it to describe the analysis or calculations needed.
 
@@ -110,33 +112,13 @@ Key Python Modules/Functions to Implement:
 
    * Download paths, other configurations.
 
-## 3. Technology Stack
+## 3. Steps
 
-* Programming Language: Python 3.x
+1. Implement `gemini_interactions.py`.
 
-* LLM: Google Gemini API, accessed via the `google-genai` Python SDK, leveraging its Code Execution Tool for analysis.
+2. Implement `file_handler.py`: `download_file`, `read_data_file` (CSV initially), and basic `prepare_data_for_gemini_tool` (e.g., get headers and first few rows as string).
 
-* HTTP Requests: `requests` library (primarily for file downloads, as SDK handles API calls).
-
-* Data Handling: `pandas`, `NumPy`, `openpyxl`.
-
-* Environment Management: `venv` or `conda`.
-
-* Version Control: Git.
-
-## 4. Simplified Phases
-
-### Phase 1: Core Interaction Loop & File Handling (MVP)
-
-Goal: Agent can take a query, get a file URL suggestion from Gemini, download, read, prepare a data preview, and ask Gemini to describe the analysis needed.
-
-1. Setup: Python environment, install `google-genai` package, configure Gemini API access.
-
-2. Implement `gemini_interactions.py`: Basic `get_gemini_response` using the SDK, `prompt_for_search_strategy`.
-
-3. Implement `file_handler.py`: `download_file`, `read_data_file` (CSV initially), and basic `prepare_data_for_gemini_tool` (e.g., get headers and first few rows as string).
-
-4. Implement `main_orchestrator.py` (Initial version):
+3. Implement `main_orchestrator.py` (Initial version):
 
    * Takes user query.
 
@@ -151,43 +133,3 @@ Goal: Agent can take a query, get a file URL suggestion from Gemini, download, r
    * Prints Gemini's suggested analysis description.
 
 5. Testing: With known public CSV files and SDK integration.
-
-### Phase 2: Gemini Tool-Based Analysis & Result Synthesis
-
-Goal: Agent can instruct Gemini to perform analysis using its code execution tool (via SDK) and synthesize a final answer.
-
-1. Enhance `file_handler.py`: Improve `prepare_data_for_gemini_tool` to serialize data more effectively (e.g., full CSV string for smaller files).
-
-2. Implement `prompt_gemini_for_tool_based_analysis` in `gemini_interactions.py`: This prompt will clearly instruct Gemini to use its code execution tool, using the mechanisms provided by the `google-genai` SDK for tool invocation.
-
-3. Enhance `main_orchestrator.py`:
-
-   * After getting the analysis description (from Phase 1), and preparing the full data (or a suitable reference/chunk), call `prompt_gemini_for_tool_based_analysis`.
-
-   * The response from Gemini (obtained via the SDK) should now include the output from its code execution.
-
-   * Pass this tool output to Gemini using `prompt_for_final_summary`.
-
-   * Present the final synthesized answer.
-
-4. Refine Prompts: Crucial for effective tool invocation and result interpretation when using the SDK.
-
-5. Expand File Types: Add robust Excel and JSON support in `file_handler.py` and ensure `prepare_data_for_gemini_tool` handles them.
-
-6. Error Handling: For SDK API calls involving tool use and parsing their results.
-
-7. Testing: With various data files, query types, and analysis complexities suitable for Gemini's tool, ensuring SDK interactions are correct.
-
-## 5. Key Considerations for AI Coding Agent
-
-* Clear Prompts for Tool Use: Prompts must clearly instruct Gemini (via the SDK) to use its code execution tool and define the desired analysis on the provided data. Specify expected output formats from the tool if possible.
-
-* Data Input to Gemini's Tool: Understand how data needs to be formatted or referenced for Gemini's code execution tool when using the `google-genai` SDK. This might involve passing data directly in the prompt (if small) or using mechanisms provided by the SDK for tool inputs.
-
-* Parsing Tool Output: The output from Gemini's code execution tool (received via the SDK) will need to be parsed and understood by your Python orchestrator, then potentially used in subsequent prompts (e.g., for summarization).
-
-* Iterative Prompt Engineering: Essential for effective tool invocation and getting accurate analytical results via the SDK.
-
-* Security with Gemini's Code Execution Tool: While Gemini's code execution tool is expected to run in a secure, sandboxed environment on Google's side, understand its capabilities and limitations when accessed via the SDK. Ensure that the data provided to the tool is appropriate and that the prompts clearly define the intended operations to prevent unintended actions or data exposure.
-
-* Gemini's Capabilities & Limitations: Continuously check the latest documentation for the Gemini API and the `google-genai` Python SDK, especially regarding tool use, code execution, supported libraries, execution limits (time, memory), data input methods, and output formats. This will inform how you design your prompts and data preparation steps.

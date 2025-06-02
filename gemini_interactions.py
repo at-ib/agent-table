@@ -4,12 +4,17 @@ Handles communication with Google's Gemini LLM via the google-genai SDK.
 """
 
 import google.genai as genai
+from google.genai.types import Tool, GenerateContentConfig, GoogleSearch
 from config import GEMINI_API_KEY
 
 
 class GeminiClient:
     def __init__(self):
         self.client = genai.Client(api_key=GEMINI_API_KEY)
+        self.model_id = "gemini-2.0-flash"
+        self.google_search_tool = Tool(
+            google_search=GoogleSearch()
+        )
 
     def get_gemini_response(self, prompt_text, context_data=None, tools_config=None):
         """
@@ -29,8 +34,15 @@ class GeminiClient:
             else:
                 full_prompt = prompt_text
 
-            response = self.client.models.generate_content(model="gemini-1.5-flash", contents=full_prompt)
-            return response.text
+            response = self.client.models.generate_content(
+                model=self.model_id,
+                contents=full_prompt,
+                config=GenerateContentConfig(
+                    tools=[self.google_search_tool],
+                    response_modalities=["TEXT"],
+                )
+            )
+            return response
         except Exception as e:
             print(f"Error getting Gemini response: {e}")
             return None

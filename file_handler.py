@@ -153,21 +153,21 @@ class FileHandler:
                 info.append(f"  {col}: {dtype}")
 
             # Get first few rows
-            info.append(f"\nFirst 5 rows:")
+            info.append("\nFirst 5 rows:")
             preview_rows = data_frame.head().to_string()
             info.append(preview_rows)
 
             # Get basic statistics for numeric columns
             numeric_cols = data_frame.select_dtypes(include=["number"]).columns
             if len(numeric_cols) > 0:
-                info.append(f"\nBasic statistics for numeric columns:")
+                info.append("\nBasic statistics for numeric columns:")
                 stats = data_frame[numeric_cols].describe().to_string()
                 info.append(stats)
 
             # Check for missing values
             missing = data_frame.isnull().sum()
             if missing.any():
-                info.append(f"\nMissing values:")
+                info.append("\nMissing values:")
                 for col, count in missing.items():
                     if count > 0:
                         info.append(f"  {col}: {count} missing")
