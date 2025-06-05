@@ -64,7 +64,7 @@ Key Python Modules/Functions to Implement:
 
      * `prompt_for_search_strategy(user_query)`: Asks Gemini to refine a user query into a prompt that is likely to provide a link to the right data table.
 
-     * `prompt_for_web_content(search_strategy)`: Asks Gemini to do search for data which should return URLs which are entry points to finding the data by traversing links.
+     * `prompt_for_web_content(search_strategy)`: Asks Gemini to search for data which should return URLs which are entry points to finding the data by traversing links.
 
      * `prompt_for_file_url(web_content)`: Asks Gemini to analyze web content (the result of google searches) and identify the most promising URL to follow to find a data file or the URL for a data file.
 
